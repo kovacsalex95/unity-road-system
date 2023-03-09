@@ -68,7 +68,10 @@ namespace lxkvcs.UnityRoadSystem
             EditorGUILayout.Space();
 
             if (GUILayout.Button("Connect"))
+            {
                 targetNode.ConnectNode(nextTargetNode);
+                Selection.activeGameObject = targetNode.ParentSystem.gameObject;
+            }
         }
 
 
