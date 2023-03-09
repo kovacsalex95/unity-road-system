@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using UnityEditor;
 using UnityEditor.EditorTools;
@@ -63,11 +64,17 @@ namespace lxkvcs.UnityRoadSystem
         
         private static void OnSelectionChanged()
         {
-            RoadSystem newSelectedRoadSystem = Selection.activeGameObject?.GetComponent<RoadSystem>();
-            if (newSelectedRoadSystem == null)
-                return;
+            try
+            {
+                RoadSystem selectedSystem = Selection.activeGameObject?.GetComponent<RoadSystem>();
+                if (selectedSystem)
+                {
+                    selectedSystem.RefreshNodes();
+                    ToolManager.SetActiveTool<RoadSystemEditorTool>(); //.OnToolGUI(EditorWindow.focusedWindow);
+                }
+            }
             
-            ToolManager.SetActiveTool<RoadSystemEditorTool>(); //.OnToolGUI(EditorWindow.focusedWindow);
+            catch (Exception e) { /* ... */ }
         }
     }
 }
