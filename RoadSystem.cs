@@ -51,15 +51,24 @@ namespace lxkvcs.UnityRoadSystem
                 position += new Vector3(randomX * NEW_NODE_DISTANCE, 0, randomY * NEW_NODE_DISTANCE);
             }
 
+            int nodeID = 0;
+            foreach (RoadNode _node in Nodes)
+            {
+                if (_node.ID > nodeID)
+                    nodeID = _node.ID;
+            }
+            nodeID++;
+
             GameObject nodeObject = new GameObject();
             nodeObject.transform.parent = transform;
             nodeObject.transform.localEulerAngles = Vector3.zero;
             nodeObject.transform.localScale = Vector3.one;
-            nodeObject.name = $"Node #{Nodes.Count}";
+            nodeObject.name = $"Node #{nodeID}";
 
             RoadNode node = nodeObject.AddComponent<RoadNode>();
             node.Init(this as RoadSystem);
             node.MoveTo(SnapPointToGrid(position));
+            node.ID = nodeID;
             
             Nodes.Add(node);
         }

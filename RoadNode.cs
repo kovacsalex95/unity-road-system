@@ -7,6 +7,7 @@ namespace lxkvcs.UnityRoadSystem
         private RoadSystem system = null; 
         public RoadConnection[] Connections;
 
+        public int ID = -1;
         public Vector3 Position => transform.localPosition;
         public Vector3 WorldPosition => transform.position;
 
