@@ -7,8 +7,9 @@ namespace lxkvcs.UnityRoadSystem
     public class RoadNode : MonoBehaviour
     {
         public int ID = -1;
-        
+
         private RoadSystem system = null;
+        public RoadSystem ParentSystem => system;
         
         [SerializeField]
         private List<RoadConnection> connections = null;
