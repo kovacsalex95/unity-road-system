@@ -38,6 +38,13 @@ namespace lxkvcs.UnityRoadSystem
                 return nodes;
             }
         }
+        
+        
+        public void RefreshNodes()
+        {
+            nodes.Clear();
+            nodes = null;
+        }
 
 
         public void CreateNode()
