@@ -17,7 +17,7 @@ namespace lxkvcs.UnityRoadSystem
         
         private List<RoadNode> nodes = null;
 
-
+        
         public List<RoadNode> Nodes
         {
             get
@@ -28,9 +28,11 @@ namespace lxkvcs.UnityRoadSystem
                     
                     RoadNode[] childNodes = GetComponentsInChildren<RoadNode>();
                     nodes.AddRange(childNodes);
-                    
-                    foreach (var node in nodes)
+
+                    foreach (RoadNode node in nodes)
+                    {
                         node.Init(this as RoadSystem);
+                    }
                 }
 
                 return nodes;

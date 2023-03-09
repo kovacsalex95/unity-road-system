@@ -15,10 +15,8 @@ namespace lxkvcs.UnityRoadSystem
         {
             this.system = system;
             
-            if (this.system == null)
-                this.system = GetComponentInParent<RoadSystem>();
-            if (this.system == null)
-                this.system = RoadSystem.FirstSystem();
+            if (this.system == null) this.system = GetComponentInParent<RoadSystem>();
+            if (this.system == null) this.system = RoadSystem.FirstSystem();
         }
         
         public void MoveTo(Vector3 newPosition)
