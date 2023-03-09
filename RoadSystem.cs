@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace lxkvcs.UnityRoadSystem
 {
+    [ExecuteInEditMode]
     public class RoadSystem : MonoBehaviour
     {
         const float NEW_NODE_DISTANCE = 2f; // in units (m)
@@ -103,6 +105,23 @@ namespace lxkvcs.UnityRoadSystem
             float z = Mathf.Round(point.z / snappingDistance) * snappingDistance;
 
             return new Vector3(x, y, z);
+        }
+
+
+        public void OnDrawGizmosSelected()
+        {
+            var oldColor = Gizmos.color;
+            
+            foreach (RoadNode node in nodes)
+            {
+                foreach (RoadConnection connection in node.Connections)
+                {
+                    Gizmos.color = Color.yellow;
+                    Gizmos.DrawLine(connection.NodeA.WorldPosition, connection.NodeB.WorldPosition);
+                }
+            }
+
+            Gizmos.color = oldColor;
         }
     }
 }
