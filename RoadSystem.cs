@@ -24,7 +24,15 @@ namespace lxkvcs.UnityRoadSystem
             get
             {
                 if (nodes == null)
+                {
                     nodes = new List<RoadNode>();
+                    
+                    RoadNode[] childNodes = GetComponentsInChildren<RoadNode>();
+                    nodes.AddRange(childNodes);
+                    
+                    foreach (var node in nodes)
+                        node.Init(this as RoadSystem);
+                }
 
                 return nodes;
             }
@@ -44,8 +52,17 @@ namespace lxkvcs.UnityRoadSystem
                 position += new Vector3(randomX * NEW_NODE_DISTANCE, 0, randomY * NEW_NODE_DISTANCE);
             }
 
-            RoadNode node = new RoadNode(this as RoadSystem, SnapPointToGrid(position));
-            nodes.Add(node);
+            GameObject nodeObject = new GameObject();
+            nodeObject.transform.parent = transform;
+            nodeObject.transform.localEulerAngles = Vector3.zero;
+            nodeObject.transform.localScale = Vector3.one;
+            nodeObject.name = $"Node #{Nodes.Count}";
+
+            RoadNode node = nodeObject.AddComponent<RoadNode>();
+            node.Init(this as RoadSystem);
+            node.MoveTo(SnapPointToGrid(position));
+            
+            Nodes.Add(node);
         }
 
 

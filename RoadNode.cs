@@ -2,44 +2,36 @@ using UnityEngine;
 
 namespace lxkvcs.UnityRoadSystem
 {
-    public class RoadNode
+    public class RoadNode : MonoBehaviour
     {
-        private Vector3 position = Vector3.zero;
-        private RoadSystem system; 
+        private RoadSystem system = null; 
         public RoadConnection[] Connections;
 
-        public RoadNode()
-        {
-            this.system = RoadSystem.FirstSystem();
-        }
-        
-        public RoadNode(RoadSystem system)
+        public Vector3 Position => transform.localPosition;
+        public Vector3 WorldPosition => transform.position;
+
+        public void Init(RoadSystem system = null)
         {
             this.system = system;
+            
+            if (this.system == null)
+                this.system = GetComponentInParent<RoadSystem>();
+            if (this.system == null)
+                this.system = RoadSystem.FirstSystem();
         }
         
-        public RoadNode(RoadSystem system, Vector3 position)
-        {
-            this.position = position;
-            this.system = system;
-        }
-
-        public Vector3 Position => position;
-
         public void MoveTo(Vector3 newPosition)
         {
-            if (newPosition == position)
+            if (newPosition == transform.position)
                 return;
             
             // TODO: Recalculate distances
-            this.position = newPosition;
+            transform.position = newPosition;
         }
         
         public void Move(Vector3 newPosition)
         {
-            this.MoveTo(position + newPosition);
+            this.MoveTo(transform.localPosition + newPosition);
         }
-        
-        public Vector3 WorldPosition => position + system.transform.TransformPoint(position);
     }
 }
