@@ -68,10 +68,17 @@ namespace lxkvcs.UnityRoadSystem
             
             EditorGUILayout.Space();
 
-            if (GUILayout.Button("Connect"))
+            if (!targetNode.HasConnectionWith(nextTargetNode))
             {
-                targetNode.ConnectNode(nextTargetNode);
-                Selection.activeGameObject = targetNode.ParentSystem.gameObject;
+                if (GUILayout.Button("Connect"))
+                {
+                    targetNode.ConnectNode(nextTargetNode);
+                    
+                }
+            }
+            else
+            {
+                GUILayout.Box("These two nodes are connected");
             }
         }
 
