@@ -2,9 +2,12 @@ using UnityEngine;
 
 namespace lxkvcs.UnityRoadSystem
 {
+    [System.Serializable]
     public struct RoadConnection
     {
+        [SerializeReference]
         public RoadNode NodeA;
+        [SerializeReference]
         public RoadNode NodeB;
         public float Distance;
 
