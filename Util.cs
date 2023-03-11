@@ -38,5 +38,17 @@ namespace lxkvcs.UnityRoadSystem
 
             return AssetDatabase.GUIDToAssetPath(asset);
         }
+
+
+        private static uint lastID = 1;
+
+        public static uint NewID
+        {
+            get
+            {
+                lastID++;
+                return lastID;
+            }
+        }
     }
 }
