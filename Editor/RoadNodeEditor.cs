@@ -18,6 +18,7 @@ namespace lxkvcs.UnityRoadSystem
                     return targets[0] as RoadNode;
 
                 if (((RoadNode)targets[0]).ID < ((RoadNode)targets[1]).ID)
+                if (((RoadNode)targets[0]).SelectionID < ((RoadNode)targets[1]).SelectionID)
                     return targets[0] as RoadNode;
 
                 return targets[1] as RoadNode;
@@ -31,7 +32,7 @@ namespace lxkvcs.UnityRoadSystem
                 if (targets.Length < 2)
                     return null;
                 
-                if (((RoadNode)targets[0]).ID < ((RoadNode)targets[1]).ID)
+                if (((RoadNode)targets[0]).SelectionID < ((RoadNode)targets[1]).SelectionID)
                     return targets[1] as RoadNode;
 
                 return targets[0] as RoadNode;
