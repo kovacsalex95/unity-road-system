@@ -87,7 +87,20 @@ namespace lxkvcs.UnityRoadSystem
         {
             EditorGUILayout.BeginVertical();
             
-            EditorGUILayout.HelpBox($"Road node #{node.ID}" + System.Environment.NewLine + $"Connections: {node.Connections?.Count}", MessageType.Info);
+            GUILayout.Box(node.ToString());
+
+            string connectionInfo = node.Connections?.Count > 0 ? ":" + Environment.NewLine : "";
+
+            foreach (RoadConnection connection in node.Connections!)
+            {
+                connectionInfo += Environment.NewLine;
+                if (connection.NodeA.ID == node.ID)
+                    connectionInfo += connection.NodeB;
+                else
+                    connectionInfo += connection.NodeA;
+            }
+            
+            EditorGUILayout.HelpBox($"{node.Connections?.Count} connections{connectionInfo}", MessageType.Info);
             
             EditorGUILayout.EndVertical();
         }
