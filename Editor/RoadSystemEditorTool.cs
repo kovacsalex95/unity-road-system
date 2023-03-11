@@ -60,7 +60,7 @@ namespace lxkvcs.UnityRoadSystem
                 RoadSystem selectedSystem = Selection.activeGameObject?.GetComponent<RoadSystem>();
                 if (selectedSystem)
                 {
-                    selectedSystem.RefreshNodes();
+                    selectedSystem.ReloadNodes();
                     ToolManager.SetActiveTool<RoadSystemEditorTool>(); //.OnToolGUI(EditorWindow.focusedWindow);
                 }
             }
