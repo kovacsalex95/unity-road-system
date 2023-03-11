@@ -74,6 +74,7 @@ namespace lxkvcs.UnityRoadSystem
                 {
                     targetNode.ConnectNode(nextTargetNode);
                     
+                    SceneView.lastActiveSceneView.Repaint();
                 }
             }
             else
