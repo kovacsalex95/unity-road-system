@@ -18,6 +18,12 @@ namespace lxkvcs.UnityRoadSystem
         
         public Vector3 WorldPosition => transform.position;
 
+        private uint selectionID = 0;
+
+        public bool Selected => selectionID > 0;
+
+        public uint SelectionID => selectionID;
+
         
         public List<RoadConnection> Connections
         {
@@ -93,6 +99,36 @@ namespace lxkvcs.UnityRoadSystem
         public void Move(Vector3 newPosition)
         {
             this.MoveTo(transform.localPosition + newPosition);
+        }
+
+
+        public void Select()
+        {
+            this.selectionID = Util.NewID;
+            UpdateMaterialSelection();
+        }
+
+
+        public void Deselect()
+        {
+            selectionID = 0;
+            UpdateMaterialSelection();
+        }
+
+
+        private void UpdateMaterialSelection()
+        {
+            MeshRenderer _renderer = GetComponent<MeshRenderer>();
+            if (_renderer == null)
+                return;
+            
+            _renderer.sharedMaterial.SetFloat("_Selected", Selected ? 1f : 0f);
+        }
+
+
+        public override string ToString()
+        {
+            return $"Road node #{ID}";
         }
     }
 }
