@@ -1,3 +1,4 @@
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,6 +10,18 @@ namespace lxkvcs.UnityRoadSystem
     {
         private RoadSystem system => target as RoadSystem;
         
+        private void OnEnable()
+        {
+            system.OnSystemUpdate += OnTargetUpdate;
+        }
+
+        
+        private void OnDisable()
+        {
+            system.OnSystemUpdate -= OnTargetUpdate;
+        }
+        
+
         public override void OnInspectorGUI()
         {
             float inspectorWidth = EditorGUIUtility.currentViewWidth;
@@ -28,6 +41,11 @@ namespace lxkvcs.UnityRoadSystem
             
             if (GUILayout.Button("Create node", GUILayout.Height(40)))
                 system.CreateNode();
+        }
+        
+        
+        private void OnTargetUpdate(object sender, EventArgs e)
+        {
         }
     }
 }
