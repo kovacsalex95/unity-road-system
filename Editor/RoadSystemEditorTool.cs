@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.EditorTools;
 using UnityEngine;
+using Resources = unity_road_system.Resources;
 
-namespace lxkvcs.UnityRoadSystem
+
+namespace unity_road_system.Editor
 {
     [EditorTool("Road nodes", typeof(RoadSystem))]
     public class RoadSystemEditorTool : EditorTool
@@ -29,20 +32,17 @@ namespace lxkvcs.UnityRoadSystem
             if (system == null) return;
             if (system.Nodes.Count == 0) return;
 
-            Vector3[] newPositions = new Vector3[system.Nodes.Count];
+            Dictionary<uint, Vector3> newPositions = new Dictionary<uint, Vector3>();
 
             EditorGUI.BeginChangeCheck();
 
-            for (int i = 0; i < system.Nodes.Count; i++)
-                newPositions[i] = Handles.PositionHandle(system.Nodes[i].WorldPosition, transform.rotation);
+            foreach (KeyValuePair<uint, RoadNode> node in system.Nodes)
+                newPositions.Add(node.Key, Handles.PositionHandle(node.Value.WorldPosition, transform.rotation));
 
             if (!EditorGUI.EndChangeCheck()) return;
 
-            for (int i = 0; i < newPositions.Length; i++)
-            {
-                Vector3 newLocalPosition = system.SnapPointToGrid(newPositions[i]);
-                system.Nodes[i].MoveTo(newLocalPosition);
-            }
+            foreach(KeyValuePair<uint, Vector3> position in newPositions)
+                system.Nodes[position.Key].MoveTo(position.Value);
         }
         
         

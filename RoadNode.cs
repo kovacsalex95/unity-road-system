@@ -1,27 +1,60 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace lxkvcs.UnityRoadSystem
+
+namespace unity_road_system
 {
     public class RoadNode : MonoBehaviour
     {
-        public int ID = -1;
-
-        private RoadSystem system = null;
-        public RoadSystem ParentSystem => system;
-        
-        [SerializeField]
-        private List<RoadConnection> connections = null;
+        public uint ID;
         
         public Vector3 Position => transform.localPosition;
         
         public Vector3 WorldPosition => transform.position;
-
-        private uint selectionID = 0;
+        
+        public RoadSystem ParentSystem => system;
 
         public bool Selected => selectionID > 0;
 
         public uint SelectionID => selectionID;
+        
+
+        private RoadSystem system;
+        
+        [SerializeField]
+        private List<RoadConnection> connections;
+
+        private uint selectionID;
+
+        private uint[] connectedNodeIDs;
+        private static readonly int Selected1 = Shader.PropertyToID("_Selected");
+
+
+        public uint[] ConnectedNodeIDs { get
+        {
+            if (connectedNodeIDs == null) connectedNodeIDs = new uint[0];
+            return connectedNodeIDs;
+        } }
+
+        public bool HasAnyConnection => ConnectedNodeIDs.Length > 0;
+
+
+        public void Init(RoadSystem parentSystem = null)
+        {
+            this.system = parentSystem;
+            
+            if (this.system == null) this.system = GetComponentInParent<RoadSystem>();
+            if (this.system == null) this.system = RoadSystem.FirstSystem();
+
+            this.system.OnSystemUpdate += this.OnSystemUpdate;
+        }
+
+
+        private void OnSystemUpdate(object sender, EventArgs e)
+        {
+            UpdateConnections();
+        }
 
         
         public List<RoadConnection> Connections
@@ -36,15 +69,18 @@ namespace lxkvcs.UnityRoadSystem
         }
 
         
-        public bool ConnectNode(RoadNode node)
+        public void ConnectNode(RoadNode node)
         {
             if (node.ID < ID)
-                return node.ConnectNode(this);
-            
+            {
+                node.ConnectNode(this);
+                return;
+            }
+
             if (HasConnectionWith(node))
             {
                 Debug.LogWarning($"These two node is already connected! (#{ID} -> #{node.ID})");
-                return false;
+                return;
             }
 
             RoadConnection connection = new RoadConnection
@@ -55,9 +91,47 @@ namespace lxkvcs.UnityRoadSystem
             connection.RecalculateDistance();
 
             Connections.Add(connection);
-            return true;
+            UpdateConnections();
         }
 
+
+        public void DisconnectNode(RoadNode node)
+        {
+            List<RoadConnection> connectionsToRemove = new List<RoadConnection>();
+            foreach (RoadConnection connection in Connections)
+            {
+                if (connection.NodeA.ID == node.ID || connection.NodeB.ID == node.ID)
+                    connectionsToRemove.Add(connection);
+            }
+
+            foreach (RoadConnection c in connectionsToRemove)
+                connections.Remove(c);
+            
+            UpdateConnections();
+        }
+
+
+        private void UpdateConnections()
+        {
+            List<uint> IDs = new List<uint>();
+            
+            foreach (KeyValuePair<uint, RoadNode> node in system.Nodes)
+            {
+                if (node.Value.HasConnectionWith(this) && !IDs.Contains(node.Key))
+                    IDs.Add(node.Key);
+            }
+
+            foreach (RoadConnection connection in Connections)
+            {
+                if (IDs.Contains(connection.NodeB.ID))
+                    continue;
+                
+                IDs.Add(connection.NodeB.ID);
+            }
+
+            connectedNodeIDs = IDs.ToArray();
+        }
+        
         
         public bool HasConnectionWith(RoadNode node)
         {
@@ -65,7 +139,7 @@ namespace lxkvcs.UnityRoadSystem
         }
 
         
-        public bool HasConnectionWith(int nodeID)
+        public bool HasConnectionWith(uint nodeID)
         {
             foreach (RoadConnection connection in Connections)
             {
@@ -74,15 +148,6 @@ namespace lxkvcs.UnityRoadSystem
             }
 
             return false;
-        }
-
-
-        public void Init(RoadSystem system = null)
-        {
-            this.system = system;
-            
-            if (this.system == null) this.system = GetComponentInParent<RoadSystem>();
-            if (this.system == null) this.system = RoadSystem.FirstSystem();
         }
         
         
@@ -126,7 +191,7 @@ namespace lxkvcs.UnityRoadSystem
             if (_renderer == null)
                 return;
             
-            _renderer.sharedMaterial.SetFloat("_Selected", Selected ? 1f : 0f);
+            _renderer.sharedMaterial.SetFloat(Selected1, Selected ? 1f : 0f);
         }
 
 

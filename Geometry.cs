@@ -1,6 +1,7 @@
 using UnityEngine;
 
-namespace lxkvcs.UnityRoadSystem
+
+namespace unity_road_system
 {
     public class Geometry
     {

@@ -2,51 +2,54 @@
 // BUG: Road connections lost after some actions
 // BUG: Undo not working properly
 // TODO: Create nodes from the scene view
+// TODO: Multi-select & connection
 
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Random = UnityEngine.Random;
 
-namespace lxkvcs.UnityRoadSystem
+
+namespace unity_road_system
 {
     [ExecuteInEditMode]
     public class RoadSystem : MonoBehaviour
     {
         const float NEW_NODE_DISTANCE = 2f; // in units (m)
-        
-        
-        [SerializeField]
-        public bool enableSnapping = true;
-        
-        [SerializeField]
-        public float snappingDistance = 0.25f;
-
-        private List<RoadNode> nodes = null;
-        private Dictionary<int, int> selectedNodeIDs = new Dictionary<int, int>();
-
-        private bool roadPartSelected = false;
-
-        public event EventHandler OnSystemUpdate = null; 
 
         
-        public List<RoadNode> Nodes
+        public event EventHandler OnSystemUpdate; 
+        
+        public uint[] selectedNodeIDs = new uint[0];
+        
+        public uint LastNodeID => Nodes.Keys.Last();
+        
+
+        private Dictionary<uint, RoadNode> nodes;
+        
+        private Dictionary<int, uint> selectedNodeDictionary = new();
+
+        
+        public Dictionary<uint, RoadNode> Nodes
         {
             get
             {
                 if (nodes == null)
                 {
-                    nodes = new List<RoadNode>();
+                    nodes = new Dictionary<uint, RoadNode>();
                     
                     RoadNode[] childNodes = GetComponentsInChildren<RoadNode>();
-                    nodes.AddRange(childNodes);
+                    
+                    foreach(RoadNode node in childNodes)
+                        nodes.Add(node.ID, node);
 
-                    foreach (RoadNode node in nodes)
+                    foreach (KeyValuePair<uint, RoadNode> node in nodes)
                     {
-                        node.Init(this as RoadSystem);
+                        node.Value.Init(this);
                     }
                     
                     UpdateSystem();
@@ -59,8 +62,10 @@ namespace lxkvcs.UnityRoadSystem
         
         public void ReloadNodes()
         {
-            nodes.Clear();
+            Nodes.Clear();
+            selectedNodeDictionary.Clear();
             nodes = null;
+            UpdateSystem();
         }
 
 
@@ -70,21 +75,15 @@ namespace lxkvcs.UnityRoadSystem
 
             if (Nodes.Count > 0)
             {
-                position = nodes[nodes.Count - 1].Position;
+                position = nodes[LastNodeID].Position;
                 float randomDegree = Random.Range(0f, 360f);
                 float randomX = Mathf.Sin(randomDegree * Mathf.Deg2Rad);
                 float randomY = Mathf.Cos(randomDegree * Mathf.Deg2Rad);
                 position += new Vector3(randomX * NEW_NODE_DISTANCE, 0, randomY * NEW_NODE_DISTANCE);
             }
 
-            int nodeID = 0;
-            foreach (RoadNode _node in Nodes)
-            {
-                if (_node.ID > nodeID)
-                    nodeID = _node.ID;
-            }
-            nodeID++;
-
+            uint nodeID = Util.NewID;
+            
             GameObject nodeObject = new GameObject();
             nodeObject.transform.parent = transform;
             nodeObject.transform.localEulerAngles = Vector3.zero;
@@ -92,8 +91,8 @@ namespace lxkvcs.UnityRoadSystem
             nodeObject.name = $"Node #{nodeID}";
 
             RoadNode node = nodeObject.AddComponent<RoadNode>();
-            node.Init(this as RoadSystem);
-            node.MoveTo(SnapPointToGrid(position));
+            node.Init(this);
+            node.MoveTo(position);
             node.ID = nodeID;
 
             var meshFilter = nodeObject.AddComponent<MeshFilter>();
@@ -103,7 +102,37 @@ namespace lxkvcs.UnityRoadSystem
             meshRenderer.shadowCastingMode = ShadowCastingMode.Off;
             meshRenderer.sharedMaterial = new Material(Resources.RoadNodeMaterial);
 
-            Nodes.Add(node);
+            Nodes.Add(node.ID, node);
+
+            UpdateSystem();
+        }
+
+
+        public void ConnectSelectedNodes()
+        {
+            if (selectedNodeIDs.Length < 2)
+                return;
+            
+            uint[] selectedIDs = selectedNodeIDs;
+            for (int i=1; i<selectedIDs.Length; i++)
+            {
+                Nodes[selectedIDs[i]].ConnectNode(Nodes[selectedIDs[i - 1]]);
+            }
+            
+            UpdateSystem();
+        }
+
+
+        public void DisconnectSelectedNodes()
+        {
+            if (selectedNodeIDs.Length < 1)
+                return;
+            
+            foreach (uint id in selectedNodeIDs)
+            {
+                foreach(KeyValuePair<uint, RoadNode> node in Nodes)
+                    node.Value.DisconnectNode(Nodes[id]);
+            }
 
             UpdateSystem();
         }
@@ -114,7 +143,7 @@ namespace lxkvcs.UnityRoadSystem
             // TODO: Updates etc
             
             if (OnSystemUpdate != null)
-                OnSystemUpdate.Invoke(this as RoadSystem, new EventArgs());
+                OnSystemUpdate.Invoke(this, new EventArgs());
         }
         
 
@@ -126,21 +155,8 @@ namespace lxkvcs.UnityRoadSystem
 
             return objects[0];
         }
-        
-        
-        public Vector3 SnapPointToGrid(Vector3 point)
-        {
-            if (!enableSnapping || snappingDistance <= 0.001f)
-                return point;
 
-            float x = Mathf.Round(point.x / snappingDistance) * snappingDistance;
-            float y = Mathf.Round(point.y / snappingDistance) * snappingDistance;
-            float z = Mathf.Round(point.z / snappingDistance) * snappingDistance;
 
-            return new Vector3(x, y, z);
-        }
-        
-        
         private void OnEnable()
         {
             Selection.selectionChanged += OnSelectionChanged;
@@ -155,53 +171,62 @@ namespace lxkvcs.UnityRoadSystem
         
         private void OnSelectionChanged()
         {
-            List<int> checkedInstanceIDs = new List<int>();
-
-            foreach (var obj in Selection.objects)
+            try
             {
-                if (!obj is GameObject)
-                    continue;
+                List<int> checkedInstanceIDs = new List<int>();
 
-                if (((GameObject)obj).GetComponent<RoadNode>() == null)
+                foreach (var obj in Selection.objects)
                 {
-                    if (((GameObject)obj).GetComponent<RoadSystem>() != null)
-                        roadPartSelected = true;
-                    
-                    continue;
-                }
-
-                int instanceID = ((GameObject)obj).GetInstanceID();
-                checkedInstanceIDs.Add(instanceID);
-
-                if (!selectedNodeIDs.ContainsKey(instanceID))
-                {
-                    selectedNodeIDs.Add(instanceID, ((GameObject)obj).GetComponent<RoadNode>().ID);
-                    ((GameObject)obj).GetComponent<RoadNode>().Select();
-                }
-            }
-
-            List<int> selectionToDelete = new List<int>();
-            foreach (KeyValuePair<int, int> ids in selectedNodeIDs)
-            {
-                if (checkedInstanceIDs.Contains(ids.Key))
-                    continue;
-
-                foreach (RoadNode node in Nodes)
-                {
-                    if (node.ID != ids.Value)
+                    if (!obj is GameObject)
                         continue;
-                    
-                    node.Deselect();
+
+                    if (((GameObject)obj).GetComponent<RoadNode>() == null)
+                        continue;
+
+                    int instanceID = ((GameObject)obj).GetInstanceID();
+                    checkedInstanceIDs.Add(instanceID);
+
+                    if (!selectedNodeDictionary.ContainsKey(instanceID))
+                    {
+                        selectedNodeDictionary.Add(instanceID, ((GameObject)obj).GetComponent<RoadNode>().ID);
+                        ((GameObject)obj).GetComponent<RoadNode>().Select();
+                    }
                 }
+
+                List<int> selectionToDelete = new List<int>();
+                foreach (KeyValuePair<int, uint> ids in selectedNodeDictionary)
+                {
+                    if (checkedInstanceIDs.Contains(ids.Key))
+                        continue;
+
+                    Nodes[ids.Value].Deselect();
+                    selectionToDelete.Add(ids.Key);
+                }
+
+                foreach (int i in selectionToDelete)
+                    selectedNodeDictionary.Remove(i);
+            }
+            
+            // Node deleted
+            catch (Exception error)
+            {
+                ReloadNodes();
+                Selection.activeObject = null;
                 
-                selectionToDelete.Add(ids.Key);
+                Debug.LogError(error.Message);
             }
 
-            foreach (int i in selectionToDelete)
-                selectedNodeIDs.Remove(i);
 
-            if (selectedNodeIDs.Count > 0)
-                roadPartSelected = true;
+            // Update the selected IDs array (sorted by selection ID)
+            Dictionary<uint, uint> sortedIDs = new Dictionary<uint, uint>();
+            foreach (KeyValuePair<int, uint> nodeID in selectedNodeDictionary)
+            {
+                RoadNode node = Nodes[nodeID.Value];
+                sortedIDs.Add(node.SelectionID, node.ID);
+            }
+            selectedNodeIDs = sortedIDs.OrderBy(kvp => kvp.Key)
+                .Select(kvp => kvp.Value)
+                .ToArray();
         }
 
 
@@ -213,16 +238,16 @@ namespace lxkvcs.UnityRoadSystem
 
             RoadGizmos.zOffset = 0.01f;
             
-            foreach (RoadNode node in Nodes)
+            foreach (KeyValuePair<uint, RoadNode> node in Nodes)
             {
                 Gizmos.color = Color.yellow;
-                foreach (RoadConnection connection in node.Connections)
+                foreach (RoadConnection connection in node.Value.Connections)
                 {
                     RoadGizmos.DrawRoadLines(connection.NodeA.WorldPosition, connection.NodeB.WorldPosition, roadWidth);
                 }
                 
-                Gizmos.color = node.Selected ? Color.yellow : Color.cyan;
-                RoadGizmos.DrawWireCircle(node.Position, roadWidth / 2f, 20); // TODO: road with
+                Gizmos.color = node.Value.Selected ? Color.yellow : Color.cyan;
+                RoadGizmos.DrawWireCircle(node.Value.Position, roadWidth / 2f, 20); // TODO: road with
             }
 
             Gizmos.color = oldColor;

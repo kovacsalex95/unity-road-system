@@ -2,17 +2,18 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace lxkvcs.UnityRoadSystem
+
+namespace unity_road_system
 {
     public class Resources
     {
-        private static Material roadNodeMaterial = null;
+        private static Material roadNodeMaterial;
 
-        private static Mesh roadNodeMesh = null;
+        private static Mesh roadNodeMesh;
 
-        private static GUIContent toolbarIcon = null;
+        private static GUIContent toolbarIcon;
         
-        private static string systemPath = null;
+        private static string systemPath;
 
 
         private static T LoadResource<T>(string path) where T : Object
