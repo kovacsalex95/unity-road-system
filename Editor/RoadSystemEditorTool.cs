@@ -21,15 +21,7 @@ namespace lxkvcs.UnityRoadSystem
 
         public void OnEnable()
         {
-            string scriptPath = Util.GetMonoScriptPathFor(typeof(RoadSystem));
-            string folderPath = Path.GetDirectoryName(scriptPath);
-            if (folderPath == null)
-                return;
-            
-            string iconSuffix = EditorGUIUtility.isProSkin ? "light" : "dark";
-            string iconPath = Path.Combine(folderPath, $"Images/icon_{iconSuffix}.png");
-
-            _toolbarIcon = new GUIContent(AssetDatabase.LoadAssetAtPath<Texture2D>(iconPath));
+            _toolbarIcon = Resources.ToolbarIcon;
         }
         
         
