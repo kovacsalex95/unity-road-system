@@ -9,6 +9,7 @@ namespace lxkvcs.UnityRoadSystem
     public class RoadSystemEditor : Editor
     {
         private RoadSystem system => target as RoadSystem;
+
         
         private void OnEnable()
         {
@@ -46,6 +47,7 @@ namespace lxkvcs.UnityRoadSystem
         
         private void OnTargetUpdate(object sender, EventArgs e)
         {
+            EditorUtility.SetDirty(system);
         }
     }
 }
