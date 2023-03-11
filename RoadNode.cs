@@ -77,7 +77,7 @@ namespace lxkvcs.UnityRoadSystem
             return false;
         }
 
-        
+
         public void Init(RoadSystem system = null)
         {
             this.system = system;
@@ -85,6 +85,7 @@ namespace lxkvcs.UnityRoadSystem
             if (this.system == null) this.system = GetComponentInParent<RoadSystem>();
             if (this.system == null) this.system = RoadSystem.FirstSystem();
         }
+        
         
         public void MoveTo(Vector3 newPosition)
         {
@@ -98,6 +99,7 @@ namespace lxkvcs.UnityRoadSystem
                 connection.RecalculateDistance();
             }
         }
+        
         
         public void Move(Vector3 newPosition)
         {
