@@ -39,6 +39,9 @@ namespace lxkvcs.UnityRoadSystem
         
         public bool ConnectNode(RoadNode node)
         {
+            if (node.ID < ID)
+                return node.ConnectNode(this);
+            
             if (HasConnectionWith(node))
             {
                 Debug.LogWarning($"These two node is already connected! (#{ID} -> #{node.ID})");
