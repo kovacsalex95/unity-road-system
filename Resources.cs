@@ -6,6 +6,10 @@ namespace lxkvcs.UnityRoadSystem
 {
     public class Resources
     {
+        private static Material roadNodeMaterial = null;
+
+        private static Mesh roadNodeMesh = null;
+
         private static GUIContent toolbarIcon = null;
         
         private static string systemPath = null;
@@ -17,6 +21,30 @@ namespace lxkvcs.UnityRoadSystem
                 systemPath = Path.GetDirectoryName(Util.GetMonoScriptPathFor(typeof(RoadSystem)));
             
             return AssetDatabase.LoadAssetAtPath<T>(systemPath +"/" + path);
+        }
+
+
+        public static Material RoadNodeMaterial
+        {
+            get
+            {
+                if (roadNodeMaterial == null)
+                    roadNodeMaterial = LoadResource<Material>($"Materials/RoadNode.mat");
+
+                return roadNodeMaterial;
+            }
+        }
+
+
+        public static Mesh RoadNodeMesh
+        {
+            get
+            {
+                if (roadNodeMesh == null)
+                    roadNodeMesh = Geometry.GenerateSphere(24, 12, 0.1f);
+
+                return roadNodeMesh;
+            }
         }
 
 
