@@ -1,8 +1,6 @@
-// BUG: Snap to grid after moving individual RoadNodes
-// BUG: Road connections lost after some actions
+// BUG: Selection stuck after some actions
 // BUG: Undo not working properly
 // TODO: Create nodes from the scene view
-// TODO: Multi-select & connection
 
 
 using System;
@@ -24,7 +22,7 @@ namespace unity_road_system
         
         public event EventHandler OnSystemUpdate; 
         
-        public uint[] selectedNodeIDs = new uint[0];
+        public uint[] selectedNodeIDs = Array.Empty<uint>();
         
         public uint LastNodeID => Nodes.Keys.Last();
         
@@ -169,7 +167,7 @@ namespace unity_road_system
         }
 
         
-        private void OnSelectionChanged()
+        internal void OnSelectionChanged()
         {
             try
             {

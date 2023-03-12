@@ -25,7 +25,8 @@ namespace unity_road_system.Editor
 
             EditorGUILayout.Space();
             
-            if (((RoadNode) target).HasAnyConnection && GUILayout.Button("Disconnect"))
+            GUILayout.Box("Connections:");
+            if (((RoadNode) target).HasAnyConnection && GUILayout.Button("Clear all"))
                 ((RoadNode)target).ParentSystem.DisconnectSelectedNodes();
         }
 
@@ -42,15 +43,30 @@ namespace unity_road_system.Editor
                     hasConnection = true;
             }
 
+            bool twoConnected = targets.Length == 2 && (((RoadNode)targets[0]).HasConnectionWith((RoadNode)targets[1]) || ((RoadNode)targets[1]).HasConnectionWith((RoadNode)targets[0]));
+
             EditorGUILayout.Space();
 
             RoadSystem system = ((RoadNode)target).ParentSystem;
 
+            GUILayout.Box("Connections:");
+            
+            GUILayout.BeginHorizontal();
+            
             if (GUILayout.Button("Connect"))
                 system.ConnectSelectedNodes();
 
-            if (hasConnection && GUILayout.Button("Disconnect"))
+            if (twoConnected && GUILayout.Button("Disconnect"))
+            {
+                ((RoadNode)targets[0]).DisconnectNode(targets[1] as RoadNode);
+                ((RoadNode)targets[1]).DisconnectNode(targets[0] as RoadNode);
+            }
+                
+
+            if (hasConnection && GUILayout.Button("Clear all"))
                 system.DisconnectSelectedNodes();
+            
+            GUILayout.EndHorizontal();
         }
 
 

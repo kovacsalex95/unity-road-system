@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 
 namespace unity_road_system
 {
+    [ExecuteInEditMode]
     public class RoadNode : MonoBehaviour
     {
         public uint ID;

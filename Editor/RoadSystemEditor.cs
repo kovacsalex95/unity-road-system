@@ -37,8 +37,10 @@ namespace unity_road_system.Editor
         
         private void OnTargetUpdate(object sender, EventArgs e)
         {
-            Debug.Log("Repaint");
             SceneView.lastActiveSceneView.Repaint();
+            foreach(SceneView sv in SceneView.sceneViews)
+                sv.Repaint();
+            
             EditorUtility.SetDirty(system);
         }
     }
